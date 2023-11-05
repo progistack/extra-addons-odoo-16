@@ -602,6 +602,7 @@ class SaleOrder(models.Model):
         # We can't confirm twice the child order. To avoid two messages in the chatter, quantity mismatch etc
         renew = child_subscriptions.filtered(lambda s: s.subscription_management == 'renew' and s.state in ['draft', 'sent'])
         upsell = child_subscriptions.filtered(lambda s: s.subscription_management == 'upsell' and s.state in ['draft', 'sent'])
+
         # We need to call super with batches of subscription in the same stage
         res = super(SaleOrder, self - confirmed_subscription).action_confirm()
         for stage in confirmed_subscription.mapped('stage_id'):
@@ -743,6 +744,7 @@ class SaleOrder(models.Model):
     def _prepare_renew_upsell_order(self, subscription_management, message_body):
         self.ensure_one()
         values = self._prepare_upsell_renew_order_values(subscription_management)
+        print('values =', values)
         order = self.env['sale.order'].create(values)
         self.subscription_child_ids = [Command.link(order.id)]
         order.message_post(body=message_body)
